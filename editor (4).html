@@ -1,0 +1,2698 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Створити запрошення — Скажи «Так» 💌</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      box-sizing: border-box;
+      --bg: #fff7f5;
+      --card: #ffffff;
+      --ink: #3a1f2b;
+      --mute: #8a6a76;
+      --pink: #e8446d;
+      --pink-light: #fde8ed;
+      --line: #f4d9df;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+
+    /* Stepper */
+    .stepper-top {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .step-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1.5px solid var(--line);
+      background: #fff;
+      color: var(--mute);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .step-circle.active {
+      border-color: var(--pink);
+      color: var(--pink);
+      box-shadow: 0 0 0 3px var(--pink-light);
+    }
+
+    .step-circle.completed {
+      background: #ff7e71;
+      border-color: #ff7e71;
+      color: #fff;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 32px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(232, 68, 109, 0.04);
+    }
+
+    h2 { margin: 0 0 6px; font-size: 20px; font-weight: 800; color: var(--ink); }
+    .lead { color: var(--mute); margin: 0 0 24px; font-size: 14px; }
+
+    .section-title {
+      font-weight: 700;
+      font-size: 15px;
+      margin: 20px 0 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-desc {
+      color: var(--mute);
+      font-size: 13px;
+      margin: 0 0 12px;
+    }
+
+    /* Vibes Grid */
+    .vibe-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .vibe-card {
+      height: 48px;
+      border-radius: 12px;
+      cursor: pointer;
+      position: relative;
+      border: 2px solid transparent;
+      transition: transform .2s, border-color .2s;
+    }
+
+    .vibe-card:hover { transform: scale(1.05); }
+    .vibe-card.active { border-color: var(--pink); }
+    .vibe-card.active::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      font-weight: 800;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    /* Opening Cards */
+    .opening-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .intro-card {
+      border: 1.5px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      cursor: pointer;
+      background: #fff;
+      transition: all 0.25s ease;
+      user-select: none;
+    }
+
+    .intro-card:hover {
+      border-color: var(--pink);
+      transform: translateY(-2px);
+    }
+
+    .intro-card.active {
+      border-color: var(--pink);
+      background: #fff7f9;
+      box-shadow: 0 0 0 1px var(--pink);
+    }
+
+    .intro-card .icon { font-size: 22px; margin-bottom: 6px; }
+    .intro-card .title { font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 4px; }
+    .intro-card .desc { font-size: 12px; color: var(--mute); line-height: 1.35; }
+
+    .full-intro-card { grid-column: span 2; text-align: center; padding: 12px; }
+
+    /* Pill Selector */
+    .pill-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .pill-btn {
+      border: 1.5px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 18px;
+      border-radius: 99px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .pill-btn.active {
+      background: var(--pink);
+      color: #fff;
+      border-color: var(--pink);
+      box-shadow: 0 4px 12px rgba(232, 68, 109, 0.2);
+    }
+
+    /* Sticker Selector */
+    .sticker-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      margin: 12px 0 16px;
+    }
+
+    .sticker-item {
+      aspect-ratio: 1;
+      border: 1.5px solid var(--line);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--mute);
+      background: #fff;
+      transition: all 0.2s ease;
+      overflow: hidden;
+      padding: 4px;
+    }
+
+    .sticker-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .sticker-item:hover {
+      border-color: var(--pink);
+      transform: scale(1.05);
+    }
+
+    .sticker-item.active {
+      border-color: #ff5e62;
+      box-shadow: 0 0 0 2px #ff5e62;
+      background: #fff2f0;
+    }
+
+    .upload-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-upload {
+      border: 1.5px solid var(--line);
+      background: #fff;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Variable Tags */
+    .var-btn-group {
+      display: flex;
+      gap: 8px;
+      margin: 8px 0 16px;
+      align-items: center;
+    }
+
+    .var-btn {
+      background: #fff;
+      border: 1.5px solid var(--line);
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--pink);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .var-btn:hover {
+      background: var(--pink-light);
+      border-color: var(--pink);
+    }
+
+    /* Album Upload Items */
+    .album-item-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+      background: #fff;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .album-item-row img {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    /* Inputs */
+    label { display: block; font-weight: 700; font-size: 13px; margin: 14px 0 6px; color: var(--ink); }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1.5px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    input:focus, textarea:focus, select:focus { border-color: var(--pink); }
+
+    .nav-btns { display: flex; justify-content: space-between; margin-top: 28px; gap: 12px; }
+
+    .btn {
+      background: #ff7e71;
+      color: #fff;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 26px;
+      font-weight: 700;
+      font: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(255, 126, 113, 0.35);
+    }
+
+    .btn.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); box-shadow: none; }
+
+    /* Phone Mockup */
+    .phone-wrapper {
+      position: sticky;
+      top: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .phone-device {
+      width: 320px;
+      height: 580px;
+      border-radius: 44px;
+      border: 10px solid #281a20;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+    }
+
+    .phone-device::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 18px;
+      background: #281a20;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+      z-index: 20;
+    }
+
+    .phone-particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .particle {
+      position: absolute;
+      opacity: 0.8;
+      animation: floatUp 4s infinite linear;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(600px) scale(0.8); opacity: 0; }
+      50% { opacity: 0.8; }
+      100% { transform: translateY(-50px) scale(1.2); opacity: 0; }
+    }
+
+    /* Phone Screens */
+    .phone-screen {
+      position: absolute;
+      inset: 0;
+      padding: 40px 16px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      z-index: 2;
+      color: #fff;
+      text-align: center;
+      overflow-y: auto;
+    }
+
+    .phone-screen::-webkit-scrollbar { display: none; }
+
+    .phone-screen.active { opacity: 1; pointer-events: auto; transform: scale(1); }
+
+    .phone-title { font-size: 20px; font-weight: 700; line-height: 1.2; margin-top: 20px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+    
+    .phone-hint {
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 99px;
+      margin-top: 10px;
+      display: inline-block;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .phone-interactive-area {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+
+    /* MAIN SCREEN */
+    #pMainScreen { justify-content: center; gap: 20px; }
+    .phone-main-icon { font-size: 48px; animation: heartBeat 1.5s infinite ease-in-out; }
+
+    @keyframes heartBeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    .phone-question-text { font-size: 18px; font-weight: 800; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+    .phone-action-btns { display: flex; gap: 12px; width: 100%; justify-content: center; position: relative; min-height: 50px; }
+
+    .phone-btn-yes {
+      background: #fff;
+      color: #e8446d;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 99px;
+      font-weight: 800;
+      font-size: 14px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .phone-btn-no {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      padding: 10px 18px;
+      border-radius: 99px;
+      font-weight: 600;
+      font-size: 14px;
+      backdrop-filter: blur(4px);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    /* SCREEN 2 — CONFIRMATION */
+    #pConfirmScreen { justify-content: center; gap: 16px; }
+
+    .phone-sticker-wrapper {
+      width: 110px;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .phone-sticker-wrapper img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+    }
+
+    .phone-confirm-title {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.25;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.25);
+      max-width: 240px;
+    }
+
+    .phone-confirm-subtitle {
+      font-size: 12px;
+      opacity: 0.9;
+      font-weight: 600;
+    }
+
+    .phone-btn-confirm {
+      background: #fff;
+      color: #ff5e62;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 99px;
+      font-weight: 800;
+      font-size: 13px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    /* SCREEN 3, 4 & 5 */
+    #pDateScreen, #pActivityScreen, #pFinalScreen { justify-content: center; gap: 12px; }
+
+    /* Photo Album Slider */
+    .phone-album-slider {
+      width: 100%;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 8px 0;
+      scroll-snap-type: x mandatory;
+    }
+
+    .phone-album-card {
+      min-width: 130px;
+      height: 130px;
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+      scroll-snap-align: center;
+    }
+
+    .phone-album-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .phone-album-card .caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.5);
+      font-size: 10px;
+      padding: 4px;
+      color: #fff;
+    }
+
+    /* CHECKOUT UI */
+    .checkout-outer-wrap {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .checkout-header-icon {
+      font-size: 32px;
+      background: #fff;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(232, 68, 109, 0.12);
+      margin: 0 auto;
+    }
+
+    .checkout-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .checkout-sub {
+      font-size: 13px;
+      color: var(--mute);
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .checkout-count-tag {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 99px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: var(--mute);
+      font-weight: 600;
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    .checkout-features-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .checkout-feature-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .checkout-feature-item .icon { font-size: 16px; flex-shrink: 0; }
+
+    .checkout-price-box {
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .checkout-price-label {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--mute);
+    }
+
+    .checkout-price-current {
+      font-size: 32px;
+      font-weight: 800;
+      color: #ff5e62;
+    }
+
+    .checkout-faq-list {
+      margin-top: 12px;
+    }
+
+    .checkout-faq-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .checkout-faq-item {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* GESTURE COMPONENTS */
+    .ribbon-full-wrap {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ribbon-line-h {
+      position: absolute;
+      width: 100%;
+      height: 40px;
+      background: #ff477e;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .ribbon-line-v {
+      position: absolute;
+      height: 100%;
+      width: 40px;
+      background: #ff477e;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+    }
+
+    .ribbon-knot {
+      position: absolute;
+      font-size: 72px;
+      cursor: grab;
+      user-select: none;
+      z-index: 2;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+      transition: transform 0.1s linear;
+    }
+
+    .heart-warm {
+      font-size: 110px;
+      cursor: pointer;
+      user-select: none;
+      color: #00bfff;
+      filter: drop-shadow(0 0 25px rgba(0,191,255,0.8));
+      transition: transform 0.1s linear, filter 0.1s linear, color 0.1s linear;
+    }
+
+    .fog-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 4;
+      cursor: crosshair;
+    }
+
+    .envelope-wrap {
+      position: relative;
+      width: 200px;
+      height: 140px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .envelope-flap {
+      position: absolute;
+      top: 0;
+      width: 0;
+      height: 0;
+      border-left: 100px solid transparent;
+      border-right: 100px solid transparent;
+      border-top: 70px solid #f4d9df;
+      transform-origin: top;
+      transition: transform 0.4s ease;
+    }
+
+    .letter-paper {
+      position: absolute;
+      width: 170px;
+      height: 110px;
+      background: #fff7f9;
+      border: 1px solid #f4d9df;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    .phone-interactive-area,
+    .ribbon-knot,
+    .heart-warm,
+    .envelope-wrap { touch-action: none; }
+
+    @media (max-width: 900px) {
+      .wrap { padding: 16px 14px; }
+      .layout { grid-template-columns: 1fr; gap: 24px; }
+      .phone-wrapper { position: static; }
+      .panel { padding: 20px; border-radius: 22px; }
+      .phone-device { max-width: 100%; }
+      .vibe-grid { grid-template-columns: repeat(3, 1fr); }
+      .sticker-picker-grid { grid-template-columns: repeat(4, 1fr); }
+      .stepper-top { gap: 8px; }
+    }
+
+    /* ===== Гостьовий режим (?i=slug): тільки телефон на весь екран ===== */
+    .guest-msg, .guest-toast { display: none; }
+    body.guest { background: #000; }
+    .guest .stepper-top, .guest .panel { display: none; }
+    .guest .wrap { max-width: none; padding: 0; margin: 0; }
+    .guest .layout { display: block; }
+    .guest .phone-wrapper { position: fixed; inset: 0; top: 0; }
+    .guest .phone-device {
+      flex: 1; width: 100%; height: 100%;
+      border: 0; border-radius: 0; box-shadow: none;
+    }
+    .guest .phone-device::before { display: none; }
+    .guest .phone-screen {
+      /* вузька колонка по центру, як на телефоні, навіть на великому моніторі */
+      padding: 24px max(18px, calc((100vw - 440px) / 2)) calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+    .guest #pIntroScreen > button { display: none; }
+    .guest .guest-msg {
+      display: flex; position: fixed; inset: 0; z-index: 50;
+      align-items: center; justify-content: center; text-align: center;
+      padding: 24px; background: var(--bg); color: var(--ink); font-weight: 800; font-size: 18px;
+    }
+    .guest .guest-msg.hidden { display: none; }
+    .guest .guest-toast {
+      display: block; position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+      transform: translate(-50%, 20px); opacity: 0; pointer-events: none; z-index: 60;
+      background: rgba(30, 10, 20, .88); color: #fff; padding: 10px 18px; border-radius: 99px;
+      font-size: 14px; font-weight: 700; transition: all .25s; max-width: 90vw; text-align: center;
+    }
+    .guest .guest-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ===== Кабінет автора (?c=токен) ===== */
+    .cabinet-view { display: none; }
+    body.cabinet .stepper-top, body.cabinet main.wrap { display: none; }
+    body.cabinet .cabinet-view {
+      display: flex; min-height: 100vh; align-items: flex-start; justify-content: center;
+      padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+    .cabinet-card {
+      width: 100%; max-width: 480px; background: var(--card); border: 1px solid var(--line);
+      border-radius: 28px; padding: 28px; box-shadow: 0 10px 30px rgba(232, 68, 109, 0.06);
+    }
+    .cabinet-card h2 { margin: 0 0 4px; font-size: 22px; }
+    .cab-q { color: var(--mute); margin: 0 0 16px; font-size: 14px; }
+    .cab-pill {
+      display: inline-block; padding: 8px 16px; border-radius: 99px; font-weight: 800; font-size: 14px;
+      background: var(--pink-light); color: var(--pink); margin-bottom: 14px;
+    }
+    .cab-pill.done { background: #e6f7ec; color: #1b7a43; }
+    .cab-row {
+      display: flex; justify-content: space-between; gap: 12px; padding: 11px 0;
+      border-bottom: 1px solid var(--line); font-size: 14px;
+    }
+    .cab-row span:first-child { color: var(--mute); }
+    .cab-row span:last-child { font-weight: 700; text-align: right; }
+    .cab-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+    .cab-note { color: var(--mute); font-size: 12px; margin-top: 14px; }
+
+    .builder-top {
+      display: inline-block; margin-bottom: 16px; font-weight: 800; font-size: 14px;
+      color: var(--pink); text-decoration: none;
+    }
+    .builder-top:hover { text-decoration: underline; }
+    .guest .builder-top { display: none; }
+
+    /* Поля дати й часу на екрані гостя / у прев'ю */
+    .p-field { display: block; width: 100%; text-align: left; color: #fff; }
+    .p-field > span {
+      display: block; margin: 0 0 6px 4px; font-size: 12px; font-weight: 700;
+      color: #fff; opacity: .95; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .p-input {
+      display: block; width: 100%; max-width: 100%; min-width: 0; min-height: 50px;
+      box-sizing: border-box; padding: 0 14px; margin: 0;
+      background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.45);
+      color: #fff; border-radius: 14px; font: inherit; font-size: 16px; font-weight: 700;
+      text-align: center; -webkit-appearance: none; appearance: none;
+    }
+    .p-input::-webkit-date-and-time-value { text-align: center; }
+    .p-input::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .9; cursor: pointer; }
+    .p-input:focus { outline: 2px solid #fff; outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <script>(function () { var q = new URLSearchParams(location.search); if (q.get('i')) document.body.classList.add('guest'); else if (q.get('c')) document.body.classList.add('cabinet'); })();</script>
+  <div id="guestMsg" class="guest-msg">Завантажуємо запрошення 💌</div>
+  <div id="guestToast" class="guest-toast"></div>
+  <div id="cabinet" class="cabinet-view"><div class="cabinet-card" id="cabinetCard">Завантажуємо кабінет…</div></div>
+
+  <main class="wrap">
+    <a class="builder-top" href="index.html">← На головну</a>
+    <div class="stepper-top">
+      <div class="step-circle active" onclick="setStep(0)">1</div>
+      <div class="step-circle" onclick="setStep(1)">2</div>
+      <div class="step-circle" onclick="setStep(2)">3</div>
+      <div class="step-circle" onclick="setStep(3)">4</div>
+      <div class="step-circle" onclick="setStep(4)">5</div>
+      <div class="step-circle" onclick="setStep(5)">6</div>
+    </div>
+
+    <div class="layout">
+      <!-- ЛІВА ПАНЕЛЬ НАЛАШТУВАНЬ -->
+      <div class="panel">
+        <form id="form" onsubmit="event.preventDefault()">
+
+          <!-- КРОК 1 -->
+          <div class="step-panel active" id="step-0">
+            <h2>Екран 1 — запрошення 💌</h2>
+            <p class="lead">Що побачить людина, відкривши посилання.</p>
+
+            <div class="section-title">⚡ Вайб (живий фон)</div>
+            <div class="vibe-grid" id="vibeGrid"></div>
+            <div class="section-desc" id="vibeName">Вайб: Захід сонця</div>
+
+            <div class="section-title">Як відкриється запрошення</div>
+            <div class="opening-grid" id="openingPicker">
+              <div class="intro-card active" onclick="selectOpening(this, 'ribbon')">
+                <div class="icon">🎀</div>
+                <div class="title">Розв'язати стрічку</div>
+                <div class="desc">Вузол на весь екран, який розв'язується</div>
+              </div>
+
+              <div class="intro-card" onclick="selectOpening(this, 'heart')">
+                <div class="icon">💙</div>
+                <div class="title">Зігріти сердечко</div>
+                <div class="desc">Повільно стає з синього червоним</div>
+              </div>
+
+              <div class="intro-card" onclick="selectOpening(this, 'fog')">
+                <div class="icon">🌫️</div>
+                <div class="title">Запотіле скло</div>
+                <div class="desc">Стирання туману пальцем на всьому екрані</div>
+              </div>
+
+              <div class="intro-card" onclick="selectOpening(this, 'note')">
+                <div class="icon">💌</div>
+                <div class="title">Витягнути записку</div>
+                <div class="desc">Великий конверт, з якого вилітає лист</div>
+              </div>
+
+              <div class="intro-card full-intro-card" onclick="selectOpening(this, 'none')">
+                <div class="desc">Без вступу</div>
+              </div>
+            </div>
+
+            <div class="section-title">Що робить «Ні»</div>
+            <div class="pill-group" id="noBehaviorPicker">
+              <button type="button" class="pill-btn active" onclick="setNoBehavior(this, 'escape')">Тікає</button>
+              <button type="button" class="pill-btn" onclick="setNoBehavior(this, 'shrink')">Зменшується</button>
+              <button type="button" class="pill-btn" onclick="setNoBehavior(this, 'multiply')">Розмножується</button>
+              <button type="button" class="pill-btn" onclick="setNoBehavior(this, 'vanish')">Зникає</button>
+            </div>
+
+            <label>Заголовок вступу</label>
+            <textarea id="openingTitle" rows="2" oninput="updatePreviewText()">Для тебе.&#10;З особливим трепетом.</textarea>
+
+            <div id="hintGroup">
+              <label>Підказка (інструкція до жесту)</label>
+              <input id="openingHint" value="Затисни та потягни вузол стрічки" oninput="updatePreviewText()">
+            </div>
+
+            <label>Питання (заголовок)</label>
+            <textarea id="question" rows="2" oninput="updatePreviewText()">Аню, підеш зі мною на побачення?</textarea>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label>Кнопка «Так»</label>
+                <input id="yesText" value="Так! 😍" oninput="updatePreviewText()" />
+              </div>
+              <div>
+                <label>Кнопка «Ні»</label>
+                <input id="noText" value="Ні" oninput="updatePreviewText()" />
+              </div>
+            </div>
+          </div>
+
+          <!-- КРОК 2 -->
+          <div class="step-panel" id="step-1">
+            <h2>Екран 2 — підтвердження 😍</h2>
+            <p class="lead">Дражнила на екрані одразу після «Так».</p>
+
+            <label>Підзаголовок</label>
+            <textarea id="confirmTitle" rows="2" oninput="updateStep2Preview()">Чекай, ти справді сказала «так»? 🤩</textarea>
+
+            <label>Другий рядок (необов'язково)</label>
+            <input id="confirmSubtitle" value="А я так хвилювався 🙈" oninput="updateStep2Preview()" />
+
+            <label>Кнопка підтвердження</label>
+            <input id="confirmBtnText" value="Так, так, ТАК!" oninput="updateStep2Preview()" />
+
+            <label>Картинка екрана 2 (необов'язково)</label>
+            <div class="sticker-picker-grid" id="stickerGrid">
+              <div class="sticker-item" onclick="selectSticker(this, '')">Без</div>
+              <div class="sticker-item active" onclick="selectSticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+              <div class="sticker-item" onclick="selectSticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%B2%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%B2%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+              <div class="sticker-item" onclick="selectSticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%8D%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%8D%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+              <div class="sticker-item" onclick="selectSticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%B3%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%B3%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+              <div class="sticker-item" onclick="selectSticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%98%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%98%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+            </div>
+
+            <div class="upload-row">
+              <label class="btn-upload">
+                📷 Завантажити
+                <input type="file" accept="image/*" style="display:none" onchange="handleFileUpload(event)">
+              </label>
+              <input id="customImageUrl" placeholder="Посилання на фото/GIF" oninput="handleUrlInput(this.value)">
+            </div>
+          </div>
+
+          <!-- КРОК 3 -->
+          <div class="step-panel" id="step-2">
+            <h2>Дата і час 📅</h2>
+            <p class="lead">Запропонуйте зручний час або залиште вибір отримувачу.</p>
+
+            <div class="date-mode-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+              <div class="intro-card active" id="modeTrustCard" onclick="setDateMode('trust')">
+                <div class="icon">🤍</div>
+                <div class="title">Довіритися отримувачу</div>
+                <div class="desc">Він сам вибере дату та час</div>
+              </div>
+              <div class="intro-card" id="modeOfferCard" onclick="setDateMode('offer')">
+                <div class="icon">📅</div>
+                <div class="title">Запропонувати варіанти</div>
+                <div class="desc">Одне значення або декілька на вибір</div>
+              </div>
+            </div>
+
+            <div id="optionsContainer" style="display: none; margin-bottom: 20px;">
+              <div class="section-title">Коли зустрінемося?</div>
+              <div id="variantsList"></div>
+              <button type="button" class="btn-upload" style="width: 100%; justify-content: center; margin-top: 10px;" onclick="addDateVariant()">
+                + Додати варіант
+              </button>
+              <div class="section-desc" style="margin-top: 8px;">
+                🤍 Якщо плани не співпадуть, отримувач зможе запропонувати свій час.
+              </div>
+            </div>
+
+            <label>Заголовок екрана</label>
+            <textarea id="step3Title" rows="2" oninput="updateStep3Preview()">Коли тобі зручно? 📅</textarea>
+
+            <label>Текст кнопки</label>
+            <input id="step3BtnText" value="Підтвердити 💫" oninput="updateStep3Preview()" />
+
+            <label>Картинка екрана (необов'язково)</label>
+            <div class="sticker-picker-grid" id="step3StickerGrid">
+              <div class="sticker-item" onclick="selectStep3Sticker(this, '')">Без</div>
+              <div class="sticker-item active" onclick="selectStep3Sticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+              <div class="sticker-item" onclick="selectStep3Sticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%B2%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%B2%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+              <div class="sticker-item" onclick="selectStep3Sticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%8D%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%8D%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+            </div>
+
+            <div class="upload-row">
+              <label class="btn-upload">
+                📷 Завантажити
+                <input type="file" accept="image/*" style="display:none" onchange="handleStep3FileUpload(event)">
+              </label>
+              <input id="step3CustomImageUrl" placeholder="Посилання на фото/GIF" oninput="handleStep3UrlInput(this.value)">
+            </div>
+          </div>
+
+          <!-- КРОК 4 -->
+          <div class="step-panel" id="step-3">
+            <h2>Активність 🎯</h2>
+            <p class="lead">Оберіть, чим саме ви займетеся під час зустрічі.</p>
+
+            <div class="date-mode-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 20px;">
+              <div class="intro-card active" id="actModeTrustCard" onclick="setActivityMode('trust')" style="padding: 12px; text-align: center;">
+                <div class="icon" style="font-size: 18px;">✨</div>
+                <div class="title" style="font-size: 12px;">Довіритися</div>
+              </div>
+              <div class="intro-card" id="actModeOfferCard" onclick="setActivityMode('offer')" style="padding: 12px; text-align: center;">
+                <div class="icon" style="font-size: 18px;">🍕</div>
+                <div class="title" style="font-size: 12px;">Запропонувати</div>
+              </div>
+              <div class="intro-card" id="actModeSecretCard" onclick="setActivityMode('secret')" style="padding: 12px; text-align: center;">
+                <div class="icon" style="font-size: 18px;">🤫</div>
+                <div class="title" style="font-size: 12px;">Секрет</div>
+              </div>
+            </div>
+
+            <div id="activityOptionsContainer" style="display: none; margin-bottom: 20px;">
+              <div class="section-title">Варіанти активностей</div>
+              <div id="activityVariantsList"></div>
+              <button type="button" class="btn-upload" style="width: 100%; justify-content: center; margin-top: 10px;" onclick="addActivityVariant()">
+                + Додати активність
+              </button>
+            </div>
+
+            <label>Заголовок екрана</label>
+            <textarea id="step4Title" rows="2" oninput="updateStep4Preview()">Чим займемося? 🎯</textarea>
+
+            <label>Текст кнопки</label>
+            <input id="step4BtnText" value="Далі ✨" oninput="updateStep4Preview()" />
+
+            <label>Картинка екрана (необов'язково)</label>
+            <div class="sticker-picker-grid" id="step4StickerGrid">
+              <div class="sticker-item" onclick="selectStep4Sticker(this, '')">Без</div>
+              <div class="sticker-item active" onclick="selectStep4Sticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+              <div class="sticker-item" onclick="selectStep4Sticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%B2%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%B2%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+              <div class="sticker-item" onclick="selectStep4Sticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%8D%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%8D%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+            </div>
+
+            <div class="upload-row">
+              <label class="btn-upload">
+                📷 Завантажити
+                <input type="file" accept="image/*" style="display:none" onchange="handleStep4FileUpload(event)">
+              </label>
+              <input id="step4CustomImageUrl" placeholder="Посилання на фото/GIF" oninput="handleStep4UrlInput(this.value)">
+            </div>
+          </div>
+
+          <!-- КРОК 5 (ФІНАЛЬНИЙ ЕКРАН) -->
+          <div class="step-panel" id="step-4">
+            <h2>Фінальний екран 🎉</h2>
+            <p class="lead">Отримувач побачить цей екран, коли вибере дату, час та заняття.</p>
+
+            <label>Заголовок</label>
+            <textarea id="finalTitle" rows="2" oninput="updateStep5Preview()">Ура! Це побачення 🧡</textarea>
+
+            <label>Опис</label>
+            <textarea id="finalDesc" rows="3" oninput="updateStep5Preview()">Чекаю на тебе {Дата} о {Час}. Нас чекає {Заняття} 💫</textarea>
+
+            <div class="section-desc">Замість слів у дужках автоматично з'являться дата, час та заняття, вибрані отримувачем. Додайте їх у текст кнопками нижче:</div>
+            
+            <div class="var-btn-group">
+              <span style="font-size: 12px; font-weight: 700; color: var(--mute);">Вставити:</span>
+              <button type="button" class="var-btn" onclick="insertVariable('{Дата}')">Дата</button>
+              <button type="button" class="var-btn" onclick="insertVariable('{Час}')">Час</button>
+              <button type="button" class="var-btn" onclick="insertVariable('{Заняття}')">Заняття</button>
+            </div>
+
+            <label>Картинка фіналу (необов'язково)</label>
+            <div class="sticker-picker-grid" id="finalStickerGrid">
+              <div class="sticker-item" onclick="selectFinalSticker(this, '')">Без</div>
+              <div class="sticker-item active" onclick="selectFinalSticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+              <div class="sticker-item" onclick="selectFinalSticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%B2%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%B2%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+              <div class="sticker-item" onclick="selectFinalSticker(this, 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%8D%3C%2Ftext%3E%3C%2Fsvg%3E')">
+                <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%98%8D%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+              </div>
+            </div>
+
+            <div class="upload-row">
+              <label class="btn-upload">
+                📷 Завантажити
+                <input type="file" accept="image/*" style="display:none" onchange="handleFinalFileUpload(event)">
+              </label>
+              <input id="finalCustomImageUrl" placeholder="Посилання на фото/GIF" oninput="handleFinalUrlInput(this.value)">
+            </div>
+
+            <div class="section-title">📸 Фотоальбом «наші моменти»</div>
+            <p class="section-desc">Кілька фото з підписами — отримувач пролистає їх на фінальному екрані.</p>
+
+            <div id="albumList"></div>
+
+            <label class="btn-upload" style="justify-content: center; width: 100%; margin-top: 10px;">
+              + Додати фото
+              <input type="file" accept="image/*" style="display:none" onchange="addAlbumPhoto(event)">
+            </label>
+            <div class="section-desc" style="margin-top: 6px;">До 12 фото, кожне до 8 МБ.</div>
+          </div>
+
+          <!-- КРОК 6 (ОПЛАТА) -->
+          <div class="step-panel" id="step-5">
+            <h2>Отримання посилання 💳</h2>
+            <p class="lead">Все готово! Оплатіть запрошення, щоб отримати персональне посилання.</p>
+
+            <div class="checkout-outer-wrap">
+              <div class="checkout-header-icon">✉️</div>
+              
+              <div class="checkout-title">Запрошення створено! 🎉</div>
+              <div class="checkout-sub">Це попередній перегляд поруч ↓ проклікай його.<br>Посилання для відправки отримаєш одразу після оплати.</div>
+
+              <div class="checkout-title" style="font-size: 16px;">Сподобалося? Отримай особисте посилання 💖</div>
+
+              <div class="checkout-features-card">
+                <div class="checkout-feature-item">
+                  <span class="icon">⏳</span>
+                  <span>Запрошення активне <b>30 днів</b> після оплати</span>
+                </div>
+                <div class="checkout-feature-item">
+                  <span class="icon">🔔</span>
+                  <span>Відповідь, день, час та заняття з'являться в <b>особистому кабінеті</b></span>
+                </div>
+                <div class="checkout-feature-item">
+                  <span class="icon">♾️</span>
+                  <span>Посилання можна відкривати <b>без обмежень</b>, поки воно активне</span>
+                </div>
+              </div>
+
+              <div class="checkout-price-box">
+                <span class="checkout-price-label">Сума замовлення:</span>
+                <span class="checkout-price-current">99 ₴</span>
+              </div>
+
+              <label id="consentBox" style="display:flex; gap:10px; align-items:flex-start; text-align:left; font-size:12px; line-height:1.5; color:var(--ink); margin:0 0 10px; cursor:pointer;">
+                <input type="checkbox" id="consentOk" style="width:20px; height:20px; flex:none; margin:2px 0 0; padding:0; accent-color:var(--pink);">
+                <span>Я ознайомився(лась) і погоджуюсь з <a href="offer.html" target="_blank" rel="noopener" style="color:var(--pink);">Публічною офертою</a> та <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--pink);">Політикою конфіденційності</a>. Прошу розпочати надання послуги негайно після оплати й розумію, що після активації посилання втрачаю право відмовитися від договору протягом 14 днів (ст. 13 Закону України «Про захист прав споживачів»).</span>
+              </label>
+              <button type="button" class="btn" style="width: 100%; text-align: center; padding: 14px; font-size: 15px;" id="btnCreate" onclick="createInvitation(this)">Отримати посилання ✨</button>
+              <div style="font-size: 11px; color: var(--mute); text-align: center;">🔒 Без підписки · Разовий платіж · <a href="payment.html" target="_blank" rel="noopener" style="color: var(--mute);">Оплата і повернення</a></div>
+              <div id="linkResult" style="display:none; margin-top:12px; padding:14px; border:1.5px dashed var(--pink); border-radius:14px; font-size:13px; word-break:break-word; background:#fff;"></div>
+
+              <div class="checkout-faq-list">
+                <div class="checkout-faq-title">Часті питання</div>
+                
+                <div class="checkout-faq-item" onclick="toggleFaq(this)">
+                  <span>Не вдається оплатити — що робити?</span>
+                  <div style="font-weight: 400; font-size: 11px; color: var(--mute); margin-top: 4px; display: none;">Напиши в підтримку — допоможемо обрати доступний спосіб оплати та завершити замовлення.</div>
+                </div>
+
+                <div class="checkout-faq-item" onclick="toggleFaq(this)">
+                  <span>Скільки працює посилання?</span>
+                  <div style="font-weight: 400; font-size: 11px; color: var(--mute); margin-top: 4px; display: none;">Посилання буде активним протягом 30 днів після створення.</div>
+                </div>
+
+                <div class="checkout-faq-item" onclick="toggleFaq(this)">
+                  <span>Куди приходить відповідь?</span>
+                  <div style="font-weight: 400; font-size: 11px; color: var(--mute); margin-top: 4px; display: none;">Всі відповіді миттєво з'являються в твоєму особистому кабінеті та сповіщеннях.</div>
+                </div>
+
+                <div class="checkout-faq-item" onclick="toggleFaq(this)">
+                  <span>Чи можна змінити запрошення після оплати?</span>
+                  <div style="font-weight: 400; font-size: 11px; color: var(--mute); margin-top: 4px; display: none;">Поки що змінити вже створене запрошення не можна. Створіть нове або напишіть у підтримку — допоможемо.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav-btns">
+            <button class="btn ghost" type="button" id="btnBack" onclick="changeStep(-1)" style="visibility:hidden">← Назад</button>
+            <button class="btn" type="button" id="btnNext" onclick="changeStep(1)">Далі →</button>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ПРАВА ПАНЕЛЬ — ЕКРАН ПРЕВ'Ю В ТЕЛЕФОНІ -->
+      <div class="phone-wrapper">
+        <div class="phone-device" id="phoneMockup">
+          <div class="phone-particles" id="particlesContainer"></div>
+
+          <!-- 1. ВСТУП ОТРЕМУВАЧА -->
+          <div class="phone-screen active" id="pIntroScreen">
+            <div style="z-index:6; position:relative;">
+              <div class="phone-title" id="pIntroTitle">Для тебе.&#10;З особливим трепетом.</div>
+              <div class="phone-hint" id="pIntroHint">Затисни та потягни вузол стрічки</div>
+            </div>
+
+            <div class="phone-interactive-area" id="phoneInteractiveArea"></div>
+
+            <button class="btn" type="button" onclick="unlockInvitation()" style="padding: 6px 16px; font-size: 11px; z-index: 6; position:relative;">
+              Пропустити 🪄
+            </button>
+          </div>
+
+          <!-- 2. ГОЛОВНЕ ПИТАННЯ (ЕКРАН 1) -->
+          <div class="phone-screen" id="pMainScreen">
+            <div class="phone-main-icon">💘</div>
+            <div class="phone-question-text" id="pQuestionText">Аню, підеш зі мною на побачення?</div>
+            
+            <div class="phone-action-btns" id="actionBtnsArea">
+              <button class="phone-btn-yes" type="button" id="pYesBtn" onclick="handlePreviewBtnClick('pConfirmScreen', this)">Так! 😍</button>
+              <button class="phone-btn-no" type="button" id="pNoBtn" onmouseover="handleNoHover(this)" onclick="handleNoHover(this)">Ні</button>
+            </div>
+          </div>
+
+          <!-- 3. ПІДТВЕРДЖЕННЯ (ЕКРАН 2) -->
+          <div class="phone-screen" id="pConfirmScreen">
+            <div class="phone-sticker-wrapper" id="pStickerWrap">
+              <img id="pStickerImg" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+            </div>
+            
+            <div class="phone-confirm-title" id="pConfirmTitle">Чекай, ти справді сказала «так»? 🤩</div>
+            <div class="phone-confirm-subtitle" id="pConfirmSubtitle">А я так хвилювався 🙈</div>
+            
+            <button class="phone-btn-confirm" type="button" id="pConfirmBtn" onclick="handlePreviewBtnClick('pDateScreen', this)">Так, так, ТАК!</button>
+          </div>
+
+          <!-- 4. ВИБІР ДАТИ (ЕКРАН 3) -->
+          <div class="phone-screen" id="pDateScreen">
+            <div class="phone-sticker-wrapper" id="pStep3StickerWrap">
+              <img id="pStep3StickerImg" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+            </div>
+            
+            <div class="phone-confirm-title" id="pDateTitle">Коли тобі зручно? 📅</div>
+            
+            <div id="pDateInteractiveArea" style="width: 100%; margin: 16px 0; display: flex; flex-direction: column; gap: 10px;"></div>
+
+            <button class="phone-btn-confirm" type="button" id="pDateBtn" onclick="handlePreviewBtnClick('pActivityScreen', this)">Підтвердити 💫</button>
+          </div>
+
+          <!-- 5. ВИБІР АКТИВНОСТІ (ЕКРАН 4) -->
+          <div class="phone-screen" id="pActivityScreen">
+            <div class="phone-sticker-wrapper" id="pStep4StickerWrap">
+              <img id="pStep4StickerImg" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+            </div>
+            
+            <div class="phone-confirm-title" id="pActivityTitle">Чим займемося? 🎯</div>
+            
+            <div id="pActivityInteractiveArea" style="width: 100%; margin: 16px 0; display: flex; flex-direction: column; gap: 10px;"></div>
+
+            <button class="phone-btn-confirm" type="button" id="pActivityBtn" onclick="handlePreviewBtnClick('pFinalScreen', this)">Далі ✨</button>
+          </div>
+
+          <!-- 6. ФІНАЛЬНИЙ ЕКРАН (ЕКРАН 5) -->
+          <div class="phone-screen" id="pFinalScreen">
+            <div class="phone-sticker-wrapper" id="pFinalStickerWrap">
+              <img id="pFinalStickerImg" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E" alt="Стікер">
+            </div>
+            
+            <div class="phone-confirm-title" id="pFinalTitle">Ура! Це побачення 🧡</div>
+            <div class="phone-confirm-subtitle" id="pFinalDesc" style="margin-top: 8px; line-height: 1.4;">Чекаю на тебе субота, 26 липня о 19:00. Нас чекає Піца 💫</div>
+
+            <div class="phone-album-slider" id="pFinalAlbumSlider"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /* ===== SUPABASE (publishable-ключ можна тримати в коді; безпека — через RLS/функції) ===== */
+    const SUPABASE_URL = 'https://cnzexeaglzwvelvcjwvg.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_gIbwwa0aaNFj306jxCXmgA_HNvcdnnQ';
+    const MEDIA_BUCKET = 'invitation-media';
+    const GUEST_SLUG = new URLSearchParams(location.search).get('i');
+    const guestMode = !!GUEST_SLUG;
+    const CABINET_TOKEN = new URLSearchParams(location.search).get('c');
+    const cabinetMode = !guestMode && !!CABINET_TOKEN;
+    const sb = (window.supabase && window.supabase.createClient)
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+      : null;
+
+    const vibes = [
+      { name: "Пелюстки", bg: "linear-gradient(160deg, #d86877, #9b3d4f)", particle: "🌸" },
+      { name: "Зорі", bg: "linear-gradient(160deg, #ff819c, #d34e69)", particle: "✨" },
+      { name: "Нічне небо", bg: "linear-gradient(160deg, #593e62, #21152d)", particle: "🌟" },
+      { name: "Захід сонця", bg: "linear-gradient(160deg, #ff8e62, #ff5e62)", particle: "🌅" },
+      { name: "М'ята", bg: "linear-gradient(160deg, #ed7c4e, #c84139)", particle: "🍃" },
+      { name: "Північне сяйво", bg: "linear-gradient(160deg, #a824cd, #501692)", particle: "💫" }
+    ];
+
+    const openingHints = {
+      ribbon: "Затисни та потягни вузол стрічки",
+      heart: "Затисни та утримуй, щоб зігріти серце",
+      fog: "Потри скло пальцем, щоб очистити туман",
+      note: "Свайпни лист вгору з конверта",
+      none: ""
+    };
+
+    let gestureAbort = null;
+    function onWin(type, fn) {
+      window.addEventListener(type, fn, { signal: gestureAbort.signal });
+    }
+
+    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+
+    let currentStep = 0;
+    let selectedOpeningType = 'ribbon';
+    let selectedNoBehavior = 'escape';
+    let selectedStickerUrl = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E';
+
+    /* Змінні Кроку 3 */
+    let dateMode = 'trust';
+    let dateVariants = [{ date: '', time: '' }];
+    let userSelectedDate = 'субота, 26 липня';
+    let userSelectedTime = '19:00';
+    let step3StickerUrl = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E';
+
+    /* Змінні Кроку 4 */
+    let activityMode = 'trust';
+    let activityVariants = [{ icon: '🍕', title: 'Смачна піца та кіно', desc: 'Замовимо велику піцу' }];
+    let userSelectedActivity = 'Піца';
+    let step4StickerUrl = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E';
+
+    /* Змінні Кроку 5 */
+    let finalStickerUrl = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20x%3D%2250%22%20y%3D%2276%22%20font-size%3D%2272%22%20text-anchor%3D%22middle%22%3E%F0%9F%A5%B0%3C%2Ftext%3E%3C%2Fsvg%3E';
+    let albumPhotos = [];
+
+    function renderParticles(symbol) {
+      const container = document.getElementById('particlesContainer');
+      if(!container) return;
+      container.innerHTML = '';
+      for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.textContent = symbol;
+        p.style.left = Math.random() * 90 + '%';
+        p.style.animationDuration = (3 + Math.random() * 4) + 's';
+        p.style.animationDelay = (Math.random() * 3) + 's';
+        p.style.fontSize = (12 + Math.random() * 12) + 'px';
+        container.appendChild(p);
+      }
+    }
+
+    const vibeGrid = document.getElementById('vibeGrid');
+    if(vibeGrid) {
+      vibes.forEach((v, idx) => {
+        const card = document.createElement('div');
+        card.className = 'vibe-card' + (idx === 3 ? ' active' : '');
+        card.style.background = v.bg;
+        card.onclick = () => {
+          document.querySelectorAll('.vibe-card').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          document.getElementById('vibeName').textContent = 'Вайб: ' + v.name;
+          document.getElementById('phoneMockup').style.background = v.bg;
+          renderParticles(v.particle);
+        };
+        vibeGrid.appendChild(card);
+      });
+      document.getElementById('phoneMockup').style.background = vibes[3].bg;
+      document.getElementById('vibeName').textContent = 'Вайб: ' + vibes[3].name;
+      renderParticles(vibes[3].particle);
+    }
+
+    function setStep(s) {
+      currentStep = s;
+      document.querySelectorAll('.step-circle').forEach((c, i) => {
+        c.classList.toggle('active', i === s);
+        c.classList.toggle('completed', i < s);
+      });
+      document.querySelectorAll('.step-panel').forEach((p, i) => p.classList.toggle('active', i === s));
+      document.getElementById('btnBack').style.visibility = s === 0 ? 'hidden' : 'visible';
+
+      // СИНХРОНІЗАЦІЯ ПРЕВ'Ю В ТЕЛЕФОНІ З КРОКОМ РЕДАГУВАННЯ ЛІВОРУЧ
+      if (s === 0) {
+        if (selectedOpeningType === 'none') {
+          showScreen('pMainScreen');
+        } else {
+          showScreen('pIntroScreen');
+          renderPhoneOpeningPreview(selectedOpeningType);
+        }
+        updatePreviewText();
+      } else if (s === 1) {
+        showScreen('pConfirmScreen');
+        updateStep2Preview();
+      } else if (s === 2) {
+        showScreen('pDateScreen');
+        renderDateVariants();
+        updateStep3Preview();
+      } else if (s === 3) {
+        showScreen('pActivityScreen');
+        renderActivityVariants();
+        updateStep4Preview();
+      } else if (s === 4) {
+        showScreen('pFinalScreen');
+        updateStep5Preview();
+      } else if (s === 5) {
+        if (selectedOpeningType === 'none') {
+          showScreen('pMainScreen');
+        } else {
+          showScreen('pIntroScreen');
+          renderPhoneOpeningPreview(selectedOpeningType);
+        }
+      }
+    }
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.phone-screen').forEach(scr => scr.classList.remove('active'));
+      const target = document.getElementById(screenId);
+      if (target) target.classList.add('active');
+    }
+
+    /* ОБРОБКА НАТИСКАННЯ КНОПОК У ТЕЛЕФОНІ */
+    function handlePreviewBtnClick(nextScreenId, eventBtn) {
+      if (guestMode) {
+        if (!guestBeforeNext(nextScreenId)) return;
+        showScreen(nextScreenId);
+        if (nextScreenId === 'pFinalScreen') submitGuestResponse();
+      } else if (currentStep === 5) {
+        // На Кроці 6 (Оплата) дозволяємо проходити весь сценарій в телефоні
+        showScreen(nextScreenId);
+      } else {
+        // На кроках 1-5 кнопка просто анімується при натисканні і залишає користувача на поточному екрані
+        
+        if (eventBtn) {
+          eventBtn.style.transform = 'scale(0.95)';
+          setTimeout(() => { eventBtn.style.transform = 'scale(1)'; }, 150);
+        }
+      }
+    }
+
+    function changeStep(delta) {
+      if (currentStep + delta >= 0 && currentStep + delta <= 5) setStep(currentStep + delta);
+    }
+
+    function unlockInvitation() {
+      if (gestureAbort) gestureAbort.abort();
+      if (guestMode || currentStep === 0) {
+        // Для демонстрації на кроці 1 показуємо головний екран
+        showScreen('pMainScreen');
+      } else if (currentStep === 5) {
+        showScreen('pMainScreen');
+      }
+    }
+
+    function selectOpening(element, type) {
+      document.querySelectorAll('#openingPicker .intro-card').forEach(card => card.classList.remove('active'));
+      element.classList.add('active');
+      selectedOpeningType = type;
+
+      const hintInput = document.getElementById('openingHint');
+      const hintGroup = document.getElementById('hintGroup');
+
+      if (type === 'none') {
+        if (hintGroup) hintGroup.style.display = 'none';
+        showScreen('pMainScreen');
+      } else {
+        if (hintGroup) hintGroup.style.display = 'block';
+        if (openingHints[type] && hintInput) hintInput.value = openingHints[type];
+        showScreen('pIntroScreen');
+        renderPhoneOpeningPreview(type);
+      }
+
+      updatePreviewText();
+    }
+
+    /* РЕНДЕР ЖЕСТІВ ВСТУПУ */
+    function renderPhoneOpeningPreview(type) {
+      const container = document.getElementById('phoneInteractiveArea');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (gestureAbort) gestureAbort.abort();
+      gestureAbort = new AbortController();
+
+      switch(type) {
+        case 'ribbon':
+          container.innerHTML = `
+            <div class="ribbon-full-wrap">
+              <div class="ribbon-line-h"></div>
+              <div class="ribbon-line-v"></div>
+              <div class="ribbon-knot" id="ribbonKnot">🎀</div>
+            </div>
+          `;
+          initRibbonFullDrag();
+          break;
+
+        case 'heart':
+          container.innerHTML = `<div class="heart-warm" id="heartWarm">💙</div>`;
+          initHeartWarming();
+          break;
+
+        case 'fog':
+          container.innerHTML = `<canvas class="fog-canvas" id="fogCanvas"></canvas>`;
+          initFogCanvas();
+          break;
+
+        case 'note':
+          container.innerHTML = `
+            <div class="envelope-wrap" id="envelopeWrap">
+              <div class="letter-paper" id="letterPaper">💌</div>
+              <div class="envelope-flap" id="envelopeFlap"></div>
+            </div>
+          `;
+          initEnvelopeSwipe();
+          break;
+      }
+    }
+
+    function initRibbonFullDrag() {
+      const knot = document.getElementById('ribbonKnot');
+      if (!knot) return;
+      let isDragging = false, startY = 0;
+
+      const onStart = (e) => {
+        isDragging = true;
+        startY = e.touches ? e.touches[0].clientY : e.clientY;
+      };
+
+      const onMove = (e) => {
+        if (!isDragging) return;
+        const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+        const diff = currentY - startY;
+        knot.style.transform = `translateY(${diff}px) rotate(${diff * 0.2}deg)`;
+
+        if (Math.abs(diff) > 120) {
+          isDragging = false;
+          knot.style.transform = 'scale(2) rotate(180deg)';
+          knot.style.opacity = '0';
+          setTimeout(unlockInvitation, 300);
+        }
+      };
+
+      const onEnd = () => {
+        if (isDragging) {
+          isDragging = false;
+          knot.style.transform = 'translateY(0) rotate(0deg)';
+        }
+      };
+
+      knot.addEventListener('mousedown', onStart);
+      knot.addEventListener('touchstart', onStart);
+      onWin('mousemove', onMove);
+      onWin('touchmove', onMove);
+      onWin('mouseup', onEnd);
+      onWin('touchend', onEnd);
+    }
+
+    function initHeartWarming() {
+      const heart = document.getElementById('heartWarm');
+      if (!heart) return;
+
+      let progress = 0, timer = null;
+
+      const startWarm = () => {
+        timer = setInterval(() => {
+          progress += 0.015;
+          if (progress >= 1) {
+            progress = 1;
+            clearInterval(timer);
+            heart.textContent = '❤️';
+            heart.style.color = '#ff0000';
+            heart.style.filter = 'drop-shadow(0 0 30px rgba(255,0,0,0.9))';
+            heart.style.transform = 'scale(1.4)';
+            setTimeout(unlockInvitation, 400);
+            return;
+          }
+
+          const r = Math.round(0 + progress * 255);
+          const g = Math.round(191 - progress * 191);
+          const b = Math.round(255 - progress * 255);
+
+          heart.style.color = `rgb(${r}, ${g}, ${b})`;
+          heart.style.filter = `drop-shadow(0 0 ${20 + progress * 25}px rgba(${r}, ${g}, ${b}, 0.9))`;
+          heart.style.transform = `scale(${1 + progress * 0.35})`;
+        }, 50);
+      };
+
+      const stopWarm = () => {
+        clearInterval(timer);
+        progress = 0;
+        heart.textContent = '💙';
+        heart.style.color = '#00bfff';
+        heart.style.filter = 'drop-shadow(0 0 25px rgba(0,191,255,0.8))';
+        heart.style.transform = 'scale(1)';
+      };
+
+      heart.addEventListener('mousedown', startWarm);
+      heart.addEventListener('touchstart', startWarm);
+      heart.addEventListener('mouseup', stopWarm);
+      heart.addEventListener('mouseleave', stopWarm);
+      heart.addEventListener('touchend', stopWarm);
+    }
+
+    function initFogCanvas() {
+      const canvas = document.getElementById('fogCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      canvas.width = canvas.clientWidth || 300;
+      canvas.height = canvas.clientHeight || 560;
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      let isErasing = false;
+      let erasedStrokeCount = 0;
+      let finished = false;
+
+      const clearedShare = () => {
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let cleared = 0, total = 0;
+        for (let i = 3; i < data.length; i += 64) {
+          total++;
+          if (data[i] < 40) cleared++;
+        }
+        return cleared / total;
+      };
+
+      const erase = (x, y) => {
+        if (finished) return;
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.arc(x, y, 26, 0, Math.PI * 2);
+        ctx.fill();
+
+        erasedStrokeCount++;
+        if (erasedStrokeCount % 8 === 0 && clearedShare() > 0.6) {
+          finished = true;
+          canvas.style.opacity = '0';
+          canvas.style.transition = 'opacity 0.6s ease';
+          setTimeout(unlockInvitation, 400);
+        }
+      };
+
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (clientX - rect.left) * (canvas.width / rect.width),
+          y: (clientY - rect.top) * (canvas.height / rect.height)
+        };
+      };
+
+      canvas.addEventListener('mousedown', (e) => { isErasing = true; const p = getPos(e); erase(p.x, p.y); });
+      canvas.addEventListener('touchstart', (e) => { isErasing = true; const p = getPos(e); erase(p.x, p.y); });
+      onWin('mousemove', (e) => { if (isErasing) { const p = getPos(e); erase(p.x, p.y); } });
+      onWin('touchmove', (e) => { if (isErasing) { const p = getPos(e); erase(p.x, p.y); } });
+      onWin('mouseup', () => isErasing = false);
+      onWin('touchend', () => isErasing = false);
+    }
+
+    function initEnvelopeSwipe() {
+      const wrap = document.getElementById('envelopeWrap');
+      const paper = document.getElementById('letterPaper');
+      const flap = document.getElementById('envelopeFlap');
+      if (!wrap || !paper) return;
+
+      let startY = 0, isDragging = false;
+
+      const onStart = (e) => {
+        isDragging = true;
+        startY = e.touches ? e.touches[0].clientY : e.clientY;
+        flap.style.transform = 'rotateX(180deg)';
+      };
+
+      const onMove = (e) => {
+        if (!isDragging) return;
+        const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+        const diff = startY - currentY;
+        if (diff > 0) {
+          paper.style.transform = `translateY(-${diff}px) scale(${1 + diff * 0.002})`;
+        }
+        if (diff > 100) {
+          isDragging = false;
+          paper.style.transform = 'translateY(-220px) scale(1.3)';
+          setTimeout(unlockInvitation, 400);
+        }
+      };
+
+      const onEnd = () => {
+        if (isDragging) {
+          isDragging = false;
+          paper.style.transform = 'translateY(0) scale(1)';
+          flap.style.transform = 'rotateX(0deg)';
+        }
+      };
+
+      wrap.addEventListener('mousedown', onStart);
+      wrap.addEventListener('touchstart', onStart);
+      onWin('mousemove', onMove);
+      onWin('touchmove', onMove);
+      onWin('mouseup', onEnd);
+      onWin('touchend', onEnd);
+    }
+
+    function setNoBehavior(btn, behavior) {
+      document.querySelectorAll('#noBehaviorPicker .pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedNoBehavior = behavior;
+
+      document.querySelectorAll('#actionBtnsArea .no-clone').forEach(c => c.remove());
+      const noBtn = document.getElementById('pNoBtn');
+      if (noBtn) {
+        noBtn.dataset.scale = 1;
+        noBtn.style.transform = 'none';
+        noBtn.style.opacity = '1';
+        noBtn.style.display = 'inline-block';
+      }
+    }
+
+    function handleNoHover(noBtn) {
+      noBtn = noBtn || document.getElementById('pNoBtn');
+      if (!noBtn) return;
+
+      switch(selectedNoBehavior) {
+        case 'escape':
+          const x = (Math.random() - 0.5) * 160;
+          const y = (Math.random() - 0.5) * 160;
+          noBtn.style.transform = `translate(${x}px, ${y}px)`;
+          break;
+
+        case 'shrink':
+          const currentScale = parseFloat(noBtn.dataset.scale || 1);
+          const newScale = Math.max(0.2, currentScale - 0.2);
+          noBtn.dataset.scale = newScale;
+          noBtn.style.transform = `scale(${newScale})`;
+          break;
+
+        case 'multiply':
+          const container = document.getElementById('actionBtnsArea');
+          if (container && container.children.length < 6) {
+            const clone = noBtn.cloneNode(true);
+            clone.style.position = 'relative';
+            clone.classList.add('no-clone');
+            clone.removeAttribute('id');
+            clone.style.transform = 'none';
+            container.appendChild(clone);
+          }
+          break;
+
+        case 'vanish':
+          noBtn.style.opacity = '0';
+          setTimeout(() => { noBtn.style.display = 'none'; }, 200);
+          break;
+      }
+    }
+
+    function updatePreviewText() {
+      const titleVal = document.getElementById('openingTitle').value;
+      const hintVal = document.getElementById('openingHint').value;
+      const questionVal = document.getElementById('question').value;
+      const yesVal = document.getElementById('yesText').value;
+      const noVal = document.getElementById('noText').value;
+
+      document.getElementById('pIntroTitle').textContent = titleVal;
+      document.getElementById('pIntroHint').textContent = hintVal;
+      document.getElementById('pQuestionText').textContent = questionVal || 'Аню, підеш зі мною на побачення?';
+      document.getElementById('pYesBtn').textContent = yesVal || 'Так! 😍';
+      document.getElementById('pNoBtn').textContent = noVal || 'Ні';
+    }
+
+    /* КРОК 2 */
+    function selectSticker(element, url) {
+      document.querySelectorAll('#stickerGrid .sticker-item').forEach(item => item.classList.remove('active'));
+      element.classList.add('active');
+      selectedStickerUrl = url;
+      updateStickerDisplay(url);
+    }
+
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const url = await persistFile(file);
+        if (!url) return;
+        document.querySelectorAll('#stickerGrid .sticker-item').forEach(item => item.classList.remove('active'));
+        updateStickerDisplay(url);
+      }
+    }
+
+    function handleUrlInput(url) {
+      if (url.trim() !== '') {
+        document.querySelectorAll('#stickerGrid .sticker-item').forEach(item => item.classList.remove('active'));
+        updateStickerDisplay(url.trim());
+      }
+    }
+
+    function updateStickerDisplay(url) {
+      const img = document.getElementById('pStickerImg');
+      const wrap = document.getElementById('pStickerWrap');
+      if (url) {
+        wrap.style.display = 'flex';
+        img.src = url;
+      } else {
+        wrap.style.display = 'none';
+      }
+    }
+
+    function updateStep2Preview() {
+      const title = document.getElementById('confirmTitle').value;
+      const subtitle = document.getElementById('confirmSubtitle').value;
+      const btnText = document.getElementById('confirmBtnText').value;
+
+      document.getElementById('pConfirmTitle').textContent = title;
+      document.getElementById('pConfirmSubtitle').textContent = subtitle;
+      document.getElementById('pConfirmBtn').textContent = btnText || 'Так, так, ТАК!';
+    }
+
+    /* КРОК 3 (ДАТА ТА ЧАС) */
+    function setDateMode(mode) {
+      dateMode = mode;
+      document.getElementById('modeTrustCard').classList.toggle('active', mode === 'trust');
+      document.getElementById('modeOfferCard').classList.toggle('active', mode === 'offer');
+      document.getElementById('optionsContainer').style.display = mode === 'offer' ? 'block' : 'none';
+      
+      if (mode === 'offer' && dateVariants.length === 0) {
+        addDateVariant();
+      } else {
+        renderDateVariants();
+      }
+      updateStep3Preview();
+    }
+
+    function addDateVariant() {
+      dateVariants.push({ date: '', time: '' });
+      renderDateVariants();
+      updateStep3Preview();
+    }
+
+    function removeDateVariant(index) {
+      dateVariants.splice(index, 1);
+      renderDateVariants();
+      updateStep3Preview();
+    }
+
+    function renderDateVariants() {
+      const container = document.getElementById('variantsList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      dateVariants.forEach((v, idx) => {
+        const item = document.createElement('div');
+        item.style.cssText = 'background: #fff; border: 1.5px solid var(--line); border-radius: 14px; padding: 12px; margin-bottom: 10px; position: relative;';
+        item.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-weight: 700; font-size: 13px;">Варіант ${idx + 1}</span>
+            ${dateVariants.length > 1 ? `<span style="cursor: pointer; color: var(--mute); font-size: 16px;" onclick="removeDateVariant(${idx})">✕</span>` : ''}
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <input type="date" value="${esc(v.date)}" onchange="dateVariants[${idx}].date = this.value; updateStep3Preview();" />
+            <input type="time" value="${esc(v.time)}" onchange="dateVariants[${idx}].time = this.value; updateStep3Preview();" />
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function updateStep3Preview() {
+      const title = document.getElementById('step3Title').value;
+      const btnText = document.getElementById('step3BtnText').value;
+
+      document.getElementById('pDateTitle').textContent = title || 'Коли тобі зручно? 📅';
+      document.getElementById('pDateBtn').textContent = btnText || 'Підтвердити 💫';
+
+      const interactiveArea = document.getElementById('pDateInteractiveArea');
+      if (!interactiveArea) return;
+      interactiveArea.innerHTML = '';
+
+      if (dateMode === 'trust') {
+        interactiveArea.innerHTML = `
+          <label class="p-field"><span>Дата</span>
+            <input class="p-input" type="date" min="${todayIso()}" onchange="pickedDateIso=this.value; userSelectedDate=fmtDate(this.value); updateStep5Preview();">
+          </label>
+          <label class="p-field"><span>Час</span>
+            <input class="p-input" type="time" onchange="pickedTime=this.value; userSelectedTime=this.value; updateStep5Preview();">
+          </label>
+        `;
+      } else {
+        dateVariants.forEach((v, i) => {
+          const card = document.createElement('div');
+          card.style.cssText = 'background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 10px; color: #fff; font-size: 13px; text-align: center; cursor: pointer;';
+          const dateStr = v.date ? fmtDate(v.date) : 'Оберіть дату';
+          const timeStr = v.time ? v.time : '--:--';
+          card.textContent = guestMode ? `${dateStr} о ${timeStr}` : `Варіант ${i + 1}: ${dateStr} о ${timeStr}`;
+          card.onclick = () => {
+            userSelectedDate = dateStr;
+            pickedDateIso = v.date || '';
+            markSelected(interactiveArea, card);
+            userSelectedTime = timeStr;
+            pickedTime = v.time || '';
+            updateStep5Preview();
+          };
+          interactiveArea.appendChild(card);
+        });
+      }
+    }
+
+    function selectStep3Sticker(element, url) {
+      document.querySelectorAll('#step3StickerGrid .sticker-item').forEach(item => item.classList.remove('active'));
+      element.classList.add('active');
+      step3StickerUrl = url;
+      const img = document.getElementById('pStep3StickerImg');
+      const wrap = document.getElementById('pStep3StickerWrap');
+      if (url) {
+        wrap.style.display = 'flex';
+        img.src = url;
+      } else {
+        wrap.style.display = 'none';
+      }
+    }
+
+    async function handleStep3FileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const url = await persistFile(file);
+        if (!url) return;
+        document.querySelectorAll('#step3StickerGrid .sticker-item').forEach(item => item.classList.remove('active'));
+        const img = document.getElementById('pStep3StickerImg');
+        const wrap = document.getElementById('pStep3StickerWrap');
+        wrap.style.display = 'flex';
+        img.src = url;
+      }
+    }
+
+    function handleStep3UrlInput(url) {
+      if (url.trim() !== '') {
+        document.querySelectorAll('#step3StickerGrid .sticker-item').forEach(item => item.classList.remove('active'));
+        const img = document.getElementById('pStep3StickerImg');
+        const wrap = document.getElementById('pStep3StickerWrap');
+        wrap.style.display = 'flex';
+        img.src = url.trim();
+      }
+    }
+
+    /* КРОК 4 (АКТИВНІСТЬ) */
+    function setActivityMode(mode) {
+      activityMode = mode;
+      document.getElementById('actModeTrustCard').classList.toggle('active', mode === 'trust');
+      document.getElementById('actModeOfferCard').classList.toggle('active', mode === 'offer');
+      document.getElementById('actModeSecretCard').classList.toggle('active', mode === 'secret');
+      document.getElementById('activityOptionsContainer').style.display = mode === 'offer' ? 'block' : 'none';
+
+      if (mode === 'offer' && activityVariants.length === 0) {
+        addActivityVariant();
+      } else {
+        renderActivityVariants();
+      }
+      updateStep4Preview();
+    }
+
+    function addActivityVariant() {
+      activityVariants.push({ icon: '✨', title: '', desc: '' });
+      renderActivityVariants();
+      updateStep4Preview();
+    }
+
+    function removeActivityVariant(index) {
+      activityVariants.splice(index, 1);
+      renderActivityVariants();
+      updateStep4Preview();
+    }
+
+    function renderActivityVariants() {
+      const container = document.getElementById('activityVariantsList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      activityVariants.forEach((v, idx) => {
+        const item = document.createElement('div');
+        item.style.cssText = 'background: #fff; border: 1.5px solid var(--line); border-radius: 14px; padding: 12px; margin-bottom: 10px; position: relative;';
+        item.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-weight: 700; font-size: 13px;">Активність ${idx + 1}</span>
+            ${activityVariants.length > 1 ? `<span style="cursor: pointer; color: var(--mute); font-size: 16px;" onclick="removeActivityVariant(${idx})">✕</span>` : ''}
+          </div>
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <input style="width: 50px; text-align: center; font-size: 18px;" value="${esc(v.icon)}" onchange="activityVariants[${idx}].icon = this.value; updateStep4Preview();" placeholder="🍕" />
+            <input placeholder="Назва (напр. Прогулянка в парку)" value="${esc(v.title)}" oninput="activityVariants[${idx}].title = this.value; updateStep4Preview();" />
+          </div>
+          <input placeholder="Короткий опис (необов'язково)" value="${esc(v.desc)}" oninput="activityVariants[${idx}].desc = this.value; updateStep4Preview();" />
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function updateStep4Preview() {
+      const title = document.getElementById('step4Title').value;
+      const btnText = document.getElementById('step4BtnText').value;
+
+      document.getElementById('pActivityTitle').textContent = title || 'Чим займемося? 🎯';
+      document.getElementById('pActivityBtn').textContent = btnText || 'Далі ✨';
+
+      const interactiveArea = document.getElementById('pActivityInteractiveArea');
+      if (!interactiveArea) return;
+      interactiveArea.innerHTML = '';
+
+      if (activityMode === 'trust') {
+        interactiveArea.innerHTML = `
+          <textarea style="background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4); color: #fff; border-radius: 12px; padding: 10px; font-size: 13px; text-align: center; width: 100%; height: 70px; resize: none;" placeholder="Напиши, що б тобі хотілося робити..." oninput="userSelectedActivity=this.value; pickedActivity=this.value; updateStep5Preview();"></textarea>
+        `;
+      } else if (activityMode === 'offer') {
+        activityVariants.forEach((v) => {
+          const card = document.createElement('div');
+          card.style.cssText = 'background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 10px; color: #fff; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 10px;';
+          card.innerHTML = `
+            <div style="font-size: 24px;">${esc(v.icon || '✨')}</div>
+            <div>
+              <div style="font-weight: 700; font-size: 13px;">${esc(v.title || 'Варіант активності')}</div>
+              ${v.desc ? `<div style="font-size: 11px; opacity: 0.8;">${esc(v.desc)}</div>` : ''}
+            </div>
+          `;
+          card.onclick = () => {
+            userSelectedActivity = v.title || 'Піца';
+            pickedActivity = v.title || '';
+            markSelected(interactiveArea, card);
+            updateStep5Preview();
+          };
+          interactiveArea.appendChild(card);
+        });
+      } else if (activityMode === 'secret') {
+        interactiveArea.innerHTML = `
+          <div style="background: rgba(255,255,255,0.15); border: 1px dashed rgba(255,255,255,0.4); border-radius: 16px; padding: 20px 10px; color: #fff; text-align: center;">
+            <div style="font-size: 32px; margin-bottom: 6px;">🎁</div>
+            <div style="font-weight: 700; font-size: 14px;">Це буде секретом... 🤫</div>
+            <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">Дізнаєшся вже під час зустрічі!</div>
+          </div>
+        `;
+        userSelectedActivity = 'Секрет 🎁';
+        pickedActivity = 'Секрет';
+        updateStep5Preview();
+      }
+    }
+
+    function selectStep4Sticker(element, url) {
+      document.querySelectorAll('#step4StickerGrid .sticker-item').forEach(item => item.classList.remove('active'));
+      element.classList.add('active');
+      step4StickerUrl = url;
+      const img = document.getElementById('pStep4StickerImg');
+      const wrap = document.getElementById('pStep4StickerWrap');
+      if (url) {
+        wrap.style.display = 'flex';
+        img.src = url;
+      } else {
+        wrap.style.display = 'none';
+      }
+    }
+
+    async function handleStep4FileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const url = await persistFile(file);
+        if (!url) return;
+        document.querySelectorAll('#step4StickerGrid .sticker-item').forEach(item => item.classList.remove('active'));
+        const img = document.getElementById('pStep4StickerImg');
+        const wrap = document.getElementById('pStep4StickerWrap');
+        wrap.style.display = 'flex';
+        img.src = url;
+      }
+    }
+
+    function handleStep4UrlInput(url) {
+      if (url.trim() !== '') {
+        document.querySelectorAll('#step4StickerGrid .sticker-item').forEach(item => item.classList.remove('active'));
+        const img = document.getElementById('pStep4StickerImg');
+        const wrap = document.getElementById('pStep4StickerWrap');
+        wrap.style.display = 'flex';
+        img.src = url.trim();
+      }
+    }
+
+    /* КРОК 5 (ФІНАЛЬНИЙ ЕКРАН) */
+    function insertVariable(variableStr) {
+      const textarea = document.getElementById('finalDesc');
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+      textarea.value = text.substring(0, start) + variableStr + text.substring(end);
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd = start + variableStr.length;
+      updateStep5Preview();
+    }
+
+    function selectFinalSticker(element, url) {
+      document.querySelectorAll('#finalStickerGrid .sticker-item').forEach(item => item.classList.remove('active'));
+      element.classList.add('active');
+      finalStickerUrl = url;
+      const img = document.getElementById('pFinalStickerImg');
+      const wrap = document.getElementById('pFinalStickerWrap');
+      if (url) {
+        wrap.style.display = 'flex';
+        img.src = url;
+      } else {
+        wrap.style.display = 'none';
+      }
+    }
+
+    async function handleFinalFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const url = await persistFile(file);
+        if (!url) return;
+        document.querySelectorAll('#finalStickerGrid .sticker-item').forEach(item => item.classList.remove('active'));
+        const img = document.getElementById('pFinalStickerImg');
+        const wrap = document.getElementById('pFinalStickerWrap');
+        wrap.style.display = 'flex';
+        img.src = url;
+      }
+    }
+
+    function handleFinalUrlInput(url) {
+      if (url.trim() !== '') {
+        document.querySelectorAll('#finalStickerGrid .sticker-item').forEach(item => item.classList.remove('active'));
+        const img = document.getElementById('pFinalStickerImg');
+        const wrap = document.getElementById('pFinalStickerWrap');
+        wrap.style.display = 'flex';
+        img.src = url.trim();
+      }
+    }
+
+    async function addAlbumPhoto(event) {
+      const file = event.target.files[0];
+      if (file && albumPhotos.length < 12) {
+        const url = await persistFile(file);
+        if (!url) return;
+        albumPhotos.push({ url: url, caption: '' });
+        renderAlbumList();
+        updateStep5Preview();
+      }
+    }
+
+    function removeAlbumPhoto(index) {
+      albumPhotos.splice(index, 1);
+      renderAlbumList();
+      updateStep5Preview();
+    }
+
+    function renderAlbumList() {
+      const container = document.getElementById('albumList');
+      if (!container) return;
+      container.innerHTML = '';
+
+      albumPhotos.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'album-item-row';
+        row.innerHTML = `
+          <img src="${esc(item.url)}" alt="Фото ${idx + 1}">
+          <input placeholder="Підпис до фото" value="${esc(item.caption)}" oninput="albumPhotos[${idx}].caption = this.value; updateStep5Preview();" />
+          <span style="cursor: pointer; color: var(--mute); font-size: 16px; padding: 0 4px;" onclick="removeAlbumPhoto(${idx})">✕</span>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function updateStep5Preview() {
+      const title = document.getElementById('finalTitle').value;
+      let desc = document.getElementById('finalDesc').value;
+
+      desc = desc.replace(/{Дата}|{date}/g, userSelectedDate)
+                 .replace(/{Час}|{time}/g, userSelectedTime)
+                 .replace(/{Заняття}|{activity}/g, userSelectedActivity);
+
+      document.getElementById('pFinalTitle').textContent = title || 'Ура! Це побачення 🧡';
+      document.getElementById('pFinalDesc').textContent = desc;
+
+      const slider = document.getElementById('pFinalAlbumSlider');
+      if (!slider) return;
+      slider.innerHTML = '';
+
+      if (albumPhotos.length > 0) {
+        slider.style.display = 'flex';
+        albumPhotos.forEach((item) => {
+          const card = document.createElement('div');
+          card.className = 'phone-album-card';
+          card.innerHTML = `
+            <img src="${esc(item.url)}" alt="Фото">
+            ${item.caption ? `<div class="caption">${esc(item.caption)}</div>` : ''}
+          `;
+          slider.appendChild(card);
+        });
+      } else {
+        slider.style.display = 'none';
+      }
+    }
+
+    /* КРОК 6 (ОПЛАТА) */
+    function toggleFaq(item) {
+      const answer = item.querySelector('div');
+      if (answer) {
+        answer.style.display = answer.style.display === 'none' ? 'block' : 'none';
+      }
+    }
+
+    /* ===== SUPABASE: збереження запрошення та гостьовий режим ===== */
+    let pickedDateIso = '';
+    let pickedTime = '';
+    let pickedActivity = '';
+
+    function todayIso() {
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    }
+
+    function fmtDate(iso) {
+      if (!iso) return '';
+      const d = new Date(iso + 'T00:00:00');
+      if (isNaN(d)) return iso;
+      return d.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+    }
+
+    function markSelected(container, card) {
+      Array.from(container.children).forEach((c) => {
+        c.style.outline = 'none';
+        c.style.background = 'rgba(255,255,255,0.2)';
+      });
+      card.style.outline = '2px solid #fff';
+      card.style.background = 'rgba(255,255,255,0.4)';
+    }
+
+    function guestToast(msg) {
+      const t = document.getElementById('guestToast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(guestToast._t);
+      guestToast._t = setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    function showGuestMsg(text) {
+      const m = document.getElementById('guestMsg');
+      m.textContent = text;
+      m.classList.remove('hidden');
+    }
+
+    function hideGuestMsg() {
+      document.getElementById('guestMsg').classList.add('hidden');
+    }
+
+    /* Завантаження фото у Storage; якщо не вдалося — локальний blob (працює лише в прев'ю) */
+    async function persistFile(file) {
+      if (file.size > 8 * 1024 * 1024) {
+        alert('Файл завеликий (максимум 8 МБ).');
+        return null;
+      }
+      if (sb) {
+        const ext = ((file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5)) || 'jpg';
+        const path = Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+        const { error } = await sb.storage.from(MEDIA_BUCKET).upload(path, file, { contentType: file.type, upsert: false });
+        if (!error) return sb.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl;
+        console.warn('Не вдалося завантажити файл у Storage:', error);
+      }
+      return URL.createObjectURL(file);
+    }
+
+    function currentSticker(imgId, wrapId) {
+      const wrap = document.getElementById(wrapId);
+      if (!wrap || wrap.style.display === 'none') return '';
+      return document.getElementById(imgId).getAttribute('src') || '';
+    }
+
+    function buildConfig() {
+      const val = (id) => document.getElementById(id).value;
+      return {
+        v: 1,
+        vibe: document.getElementById('vibeName').textContent.replace('Вайб: ', ''),
+        opening: { type: selectedOpeningType, title: val('openingTitle'), hint: val('openingHint') },
+        main: { question: val('question'), yes: val('yesText'), no: val('noText'), noBehavior: selectedNoBehavior },
+        confirm: {
+          title: val('confirmTitle'), subtitle: val('confirmSubtitle'), btn: val('confirmBtnText'),
+          sticker: currentSticker('pStickerImg', 'pStickerWrap')
+        },
+        date: {
+          mode: dateMode,
+          variants: dateVariants.filter((x) => x.date && x.time),
+          title: val('step3Title'), btn: val('step3BtnText'),
+          sticker: currentSticker('pStep3StickerImg', 'pStep3StickerWrap')
+        },
+        activity: {
+          mode: activityMode,
+          variants: activityVariants.filter((x) => (x.title || '').trim()),
+          title: val('step4Title'), btn: val('step4BtnText'),
+          sticker: currentSticker('pStep4StickerImg', 'pStep4StickerWrap')
+        },
+        final: {
+          title: val('finalTitle'), desc: val('finalDesc'),
+          sticker: currentSticker('pFinalStickerImg', 'pFinalStickerWrap'),
+          album: albumPhotos.map((p) => ({ url: p.url, caption: p.caption || '' }))
+        }
+      };
+    }
+
+    async function createInvitation(btn) {
+      const out = document.getElementById('linkResult');
+      const fail = (msg) => {
+        out.style.display = 'block';
+        out.style.color = '#b3261e';
+        out.textContent = msg;
+      };
+
+      if (!document.getElementById('consentOk').checked) {
+        document.getElementById('consentBox').scrollIntoView({ block: 'center', behavior: 'smooth' });
+        return fail('Щоб продовжити, погодьтеся з офертою та політикою конфіденційності (позначка вище).');
+      }
+
+      const cfg = buildConfig();
+      if (!sb) return fail('Не вдалося підключити Supabase. Перевірте інтернет і оновіть сторінку.');
+      if (cfg.date.mode === 'offer' && !cfg.date.variants.length) {
+        return fail('Крок 3: додайте хоча б один варіант із датою й часом.');
+      }
+      if (cfg.activity.mode === 'offer' && !cfg.activity.variants.length) {
+        return fail('Крок 4: додайте хоча б одну активність із назвою.');
+      }
+      if (JSON.stringify(cfg).includes('"blob:')) {
+        return fail('Деякі фото не вдалося завантажити у сховище (бакет invitation-media). Виконайте supabase-setup.sql або видаліть ці фото.');
+      }
+
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Створюємо…';
+
+      const first = cfg.date.variants[0];
+      const { data, error } = await sb.rpc('create_invitation', {
+        p_template_id: cfg.vibe,
+        p_title: cfg.main.question,
+        p_event_date: first ? new Date(first.date + 'T' + first.time).toISOString() : null,
+        p_wishes_text: cfg.final.desc,
+        p_config: cfg
+      });
+
+      btn.disabled = false;
+      btn.textContent = label;
+
+      if (error) {
+        console.error(error);
+        const hint = (error.code === 'PGRST202' || /find the function/i.test(error.message || ''))
+          ? ' Спершу виконайте supabase-setup.sql у SQL Editor.' : '';
+        return fail('Не вдалося зберегти: ' + (error.message || 'невідома помилка') + '.' + hint);
+      }
+
+      const res = (data && typeof data === 'object') ? data : { slug: data };
+      const base = location.href.split(/[?#]/)[0];
+      const link = base + '?i=' + encodeURIComponent(res.slug);
+      const cabinetLink = res.owner_token ? base + '?c=' + encodeURIComponent(res.owner_token) : '';
+      out.style.display = 'block';
+      out.style.color = 'var(--ink)';
+      out.innerHTML = '';
+
+      const title = document.createElement('div');
+      title.style.cssText = 'font-weight:800; margin-bottom:8px;';
+      title.textContent = 'Готово! Ось посилання для гостя 🎉';
+
+      const input = document.createElement('input');
+      input.readOnly = true;
+      input.value = link;
+      input.onclick = () => input.select();
+
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
+
+      const copy = document.createElement('button');
+      copy.type = 'button';
+      copy.className = 'btn-upload';
+      copy.textContent = 'Скопіювати';
+      copy.onclick = async () => {
+        try { await navigator.clipboard.writeText(link); }
+        catch (e) { input.select(); document.execCommand('copy'); }
+        copy.textContent = 'Скопійовано ✓';
+      };
+
+      const open = document.createElement('a');
+      open.className = 'btn-upload';
+      open.href = link;
+      open.target = '_blank';
+      open.rel = 'noopener';
+      open.style.textDecoration = 'none';
+      open.style.color = 'var(--ink)';
+      open.textContent = 'Відкрити';
+
+      row.append(copy, open);
+      out.append(title, input, row);
+
+      if (cabinetLink) {
+        const cTitle = document.createElement('div');
+        cTitle.style.cssText = 'font-weight:800; margin:16px 0 4px;';
+        cTitle.textContent = 'Ваш особистий кабінет 🔔';
+
+        const cNote = document.createElement('div');
+        cNote.style.cssText = 'color:var(--mute); font-size:12px; margin-bottom:8px;';
+        cNote.textContent = 'Збережіть це посилання: тут з’явиться відповідь гостя. Нікому його не показуйте.';
+
+        const cInput = document.createElement('input');
+        cInput.readOnly = true;
+        cInput.value = cabinetLink;
+        cInput.onclick = () => cInput.select();
+
+        const cRow = document.createElement('div');
+        cRow.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
+
+        const cCopy = document.createElement('button');
+        cCopy.type = 'button';
+        cCopy.className = 'btn-upload';
+        cCopy.textContent = 'Скопіювати';
+        cCopy.onclick = async () => {
+          try { await navigator.clipboard.writeText(cabinetLink); }
+          catch (e) { cInput.select(); document.execCommand('copy'); }
+          cCopy.textContent = 'Скопійовано ✓';
+        };
+
+        const cOpen = document.createElement('a');
+        cOpen.className = 'btn-upload';
+        cOpen.href = cabinetLink;
+        cOpen.target = '_blank';
+        cOpen.rel = 'noopener';
+        cOpen.style.textDecoration = 'none';
+        cOpen.style.color = 'var(--ink)';
+        cOpen.textContent = 'Відкрити';
+
+        cRow.append(cCopy, cOpen);
+        out.append(cTitle, cNote, cInput, cRow);
+      }
+
+      if (location.protocol === 'file:') {
+        const note = document.createElement('div');
+        note.style.cssText = 'margin-top:8px; color:var(--mute); font-size:12px;';
+        note.textContent = 'Це локальний файл — посилання працюватиме лише на вашому комп’ютері. Щоб надсилати його іншим, розмістіть index.html на хостингу.';
+        out.append(note);
+      }
+    }
+
+    /* ----- Гість: застосувати збережені налаштування й пройти сценарій ----- */
+    function setVal(id, v) {
+      const el = document.getElementById(id);
+      if (el && v !== undefined && v !== null) el.value = v;
+    }
+
+    function setImg(imgId, wrapId, url) {
+      if (url === undefined || url === null) return;
+      const img = document.getElementById(imgId);
+      const wrap = document.getElementById(wrapId);
+      if (url) { wrap.style.display = 'flex'; img.src = url; }
+      else { wrap.style.display = 'none'; }
+    }
+
+    function applyVibe(name) {
+      let idx = vibes.findIndex((v) => v.name === name);
+      if (idx < 0) idx = 3;
+      document.getElementById('phoneMockup').style.background = vibes[idx].bg;
+      renderParticles(vibes[idx].particle);
+    }
+
+    function applyConfig(c) {
+      applyVibe(c.vibe);
+
+      selectedOpeningType = (c.opening && c.opening.type) || 'ribbon';
+      setVal('openingTitle', c.opening && c.opening.title);
+      setVal('openingHint', c.opening && c.opening.hint);
+
+      setVal('question', c.main && c.main.question);
+      setVal('yesText', c.main && c.main.yes);
+      setVal('noText', c.main && c.main.no);
+      selectedNoBehavior = (c.main && c.main.noBehavior) || 'escape';
+
+      setVal('confirmTitle', c.confirm && c.confirm.title);
+      setVal('confirmSubtitle', c.confirm && c.confirm.subtitle);
+      setVal('confirmBtnText', c.confirm && c.confirm.btn);
+      setImg('pStickerImg', 'pStickerWrap', c.confirm && c.confirm.sticker);
+
+      dateMode = (c.date && c.date.mode) || 'trust';
+      dateVariants = (c.date && c.date.variants) || [];
+      setVal('step3Title', c.date && c.date.title);
+      setVal('step3BtnText', c.date && c.date.btn);
+      setImg('pStep3StickerImg', 'pStep3StickerWrap', c.date && c.date.sticker);
+
+      activityMode = (c.activity && c.activity.mode) || 'trust';
+      activityVariants = (c.activity && c.activity.variants) || [];
+      setVal('step4Title', c.activity && c.activity.title);
+      setVal('step4BtnText', c.activity && c.activity.btn);
+      setImg('pStep4StickerImg', 'pStep4StickerWrap', c.activity && c.activity.sticker);
+
+      setVal('finalTitle', c.final && c.final.title);
+      setVal('finalDesc', c.final && c.final.desc);
+      albumPhotos = (c.final && c.final.album) || [];
+      setImg('pFinalStickerImg', 'pFinalStickerWrap', c.final && c.final.sticker);
+
+      updatePreviewText();
+      updateStep2Preview();
+      updateStep3Preview();
+      updateStep4Preview();
+      updateStep5Preview();
+    }
+
+    function guestBeforeNext(next) {
+      if (next === 'pActivityScreen' && (!pickedDateIso || !pickedTime)) {
+        guestToast('Обери дату й час 🙂');
+        return false;
+      }
+      if (next === 'pFinalScreen' && !pickedActivity.trim()) {
+        guestToast('Обери або напиши, чим займемося 🙂');
+        return false;
+      }
+      return true;
+    }
+
+    async function submitGuestResponse() {
+      if (!sb) return;
+      const { error } = await sb.rpc('submit_response', {
+        p_slug: GUEST_SLUG,
+        p_date: pickedDateIso,
+        p_time: pickedTime,
+        p_activity: pickedActivity
+      });
+      if (error) {
+        console.error(error);
+        guestToast('Не вдалося зберегти відповідь. Перевір інтернет і спробуй ще раз');
+      }
+    }
+
+    async function initGuest() {
+      document.title = '💌 Тобі запрошення';
+      userSelectedDate = '';
+      userSelectedTime = '';
+      userSelectedActivity = '';
+
+      if (!sb) return showGuestMsg('Не вдалося підключитися до сервера 😔');
+
+      const { data, error } = await sb.rpc('get_invitation', { p_slug: GUEST_SLUG });
+      if (error) {
+        console.error(error);
+        return showGuestMsg('Не вдалося завантажити запрошення 😔');
+      }
+      if (!data) return showGuestMsg('Запрошення не знайдено 🙈');
+
+      /* Старі записи без config: збираємо мінімум із колонок таблиці */
+      const cfg = data.config || {
+        vibe: data.template_id,
+        main: { question: data.title },
+        final: { desc: data.wishes_text }
+      };
+      applyConfig(cfg);
+
+      if (selectedOpeningType === 'none') {
+        showScreen('pMainScreen');
+      } else {
+        showScreen('pIntroScreen');
+        renderPhoneOpeningPreview(selectedOpeningType);
+      }
+      hideGuestMsg();
+    }
+
+    /* ===== Кабінет автора ===== */
+    function cabEl(tag, text, cls) {
+      const e = document.createElement(tag);
+      if (text !== undefined && text !== null) e.textContent = text;
+      if (cls) e.className = cls;
+      return e;
+    }
+
+    function cabRow(label, value) {
+      const r = cabEl('div', null, 'cab-row');
+      r.append(cabEl('span', label), cabEl('span', value));
+      return r;
+    }
+
+    function fmtDateTime(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      if (isNaN(d)) return iso;
+      return d.toLocaleString('uk-UA', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function renderCabinet(card, v) {
+      const answered = v.status === 'answered';
+      const base = location.href.split(/[?#]/)[0];
+      const guestLink = base + '?i=' + encodeURIComponent(v.slug);
+
+      card.innerHTML = '';
+      card.append(cabEl('h2', '💌 Кабінет запрошення'));
+      card.append(cabEl('p', v.title || '', 'cab-q'));
+
+      const pill = answered ? 'Відповідь отримано 🎉'
+        : (v.opened_at ? 'Відкрито — чекаємо на відповідь 👀' : 'Ще не відкрито');
+      card.append(cabEl('div', pill, 'cab-pill' + (answered ? ' done' : '')));
+
+      if (answered) {
+        card.append(cabRow('Дата', fmtDate(v.response_date) || v.response_date || '—'));
+        card.append(cabRow('Час', v.response_time || '—'));
+        card.append(cabRow('Заняття', v.response_activity || '—'));
+      }
+      if (v.opened_at) card.append(cabRow('Відкрито', fmtDateTime(v.opened_at)));
+      card.append(cabRow('Створено', fmtDateTime(v.created_at)));
+
+      const actions = cabEl('div', null, 'cab-actions');
+      const copy = cabEl('button', 'Скопіювати посилання для гостя', 'btn-upload');
+      copy.type = 'button';
+      copy.onclick = async () => {
+        try { await navigator.clipboard.writeText(guestLink); }
+        catch (e) { /* буфер недоступний */ }
+        copy.textContent = 'Скопійовано ✓';
+      };
+      const refresh = cabEl('button', 'Оновити', 'btn-upload');
+      refresh.type = 'button';
+      refresh.onclick = () => loadCabinet();
+      actions.append(copy, refresh);
+      card.append(actions);
+      card.append(cabEl('div', 'Сторінка оновлюється сама кожні 20 секунд.', 'cab-note'));
+    }
+
+    async function loadCabinet() {
+      const card = document.getElementById('cabinetCard');
+      if (!sb) { card.textContent = 'Не вдалося підключитися до сервера 😔'; return; }
+      const { data, error } = await sb.rpc('get_owner_view', { p_token: CABINET_TOKEN });
+      if (error) { console.error(error); card.textContent = 'Не вдалося завантажити кабінет 😔'; return; }
+      if (!data) { card.textContent = 'Кабінет не знайдено 🙈'; return; }
+      renderCabinet(card, data);
+    }
+
+    function initCabinet() {
+      document.title = 'Кабінет запрошення 💌';
+      loadCabinet();
+      setInterval(loadCabinet, 20000);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (guestMode) initGuest(); else if (cabinetMode) initCabinet(); else setStep(0);
+    });
+  </script>
+</body>
+</html>
